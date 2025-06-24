@@ -1,6 +1,6 @@
 
 ===============================================================================
-    LibraSys - Gerenciador de Biblioteca com MongoDB
+  #  LibraSys - Gerenciador de Biblioteca com MongoDB
 ===============================================================================
     Projeto desenvolvido para a disciplina de Banco de Dados II
     Curso: Análise e Desenvolvimento de Sistemas (ADS)
