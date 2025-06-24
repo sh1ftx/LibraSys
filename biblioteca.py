@@ -41,14 +41,11 @@ def adicionar_livro():
 
 def listar_livros(filtro_status=None):
     console.clear()
-    painel = Panel.fit("[bold cyan]LISTAGEM DE LIVROS[/]")
-    console.print(painel)
+    console.print(Panel.fit("[bold cyan]LISTAGEM DE LIVROS[/]"))
 
-    query = {}
-    if filtro_status:
-        query["status"] = filtro_status
-
+    query = {"status": filtro_status} if filtro_status else {}
     livros = list(colecao_livros.find(query))
+
     if not livros:
         console.print("[yellow]Nenhum livro encontrado com os critérios informados.[/yellow]")
         input("Pressione Enter para continuar...")
@@ -84,7 +81,7 @@ def listar_livros_menu():
         case "3": listar_livros("emprestado")
         case "4": listar_livros("reservado")
         case "0": return
-        case _: 
+        case _:
             console.print("[red]Opção inválida![/red]")
             input("Pressione Enter...")
 
@@ -135,15 +132,12 @@ def emprestar_livro():
         livro = colecao_livros.find_one({"_id": ObjectId(livro_id)})
         if not livro:
             console.print("[red]Livro não encontrado.[/red]")
-            input("Pressione Enter...")
-            return
-        if livro["status"] != "disponível":
+        elif livro["status"] != "disponível":
             console.print(f"[yellow]Livro está com status '{livro['status']}', não pode ser emprestado.[/yellow]")
-            input("Pressione Enter...")
-            return
-        colecao_livros.update_one({"_id": ObjectId(livro_id)}, {"$set": {"status": "emprestado"}})
-        registrar_historico(livro_id, "Empréstimo", "Livro emprestado.")
-        console.print(f"[green]Livro '{livro['titulo']}' emprestado com sucesso![/green]")
+        else:
+            colecao_livros.update_one({"_id": ObjectId(livro_id)}, {"$set": {"status": "emprestado"}})
+            registrar_historico(livro_id, "Empréstimo", "Livro emprestado.")
+            console.print(f"[green]Livro '{livro['titulo']}' emprestado com sucesso![/green]")
     except Exception as e:
         console.print(f"[red]Erro: {e}[/red]")
     input("Pressione Enter para continuar...")
@@ -158,15 +152,12 @@ def devolver_livro():
         livro = colecao_livros.find_one({"_id": ObjectId(livro_id)})
         if not livro:
             console.print("[red]Livro não encontrado.[/red]")
-            input("Pressione Enter...")
-            return
-        if livro["status"] != "emprestado":
+        elif livro["status"] != "emprestado":
             console.print(f"[yellow]Livro está com status '{livro['status']}', não pode ser devolvido.[/yellow]")
-            input("Pressione Enter...")
-            return
-        colecao_livros.update_one({"_id": ObjectId(livro_id)}, {"$set": {"status": "disponível"}})
-        registrar_historico(livro_id, "Devolução", "Livro devolvido.")
-        console.print(f"[green]Livro '{livro['titulo']}' devolvido com sucesso![/green]")
+        else:
+            colecao_livros.update_one({"_id": ObjectId(livro_id)}, {"$set": {"status": "disponível"}})
+            registrar_historico(livro_id, "Devolução", "Livro devolvido.")
+            console.print(f"[green]Livro '{livro['titulo']}' devolvido com sucesso![/green]")
     except Exception as e:
         console.print(f"[red]Erro: {e}[/red]")
     input("Pressione Enter para continuar...")
@@ -180,19 +171,17 @@ def visualizar_historico():
         historico = list(colecao_historico.find({"livro_id": ObjectId(livro_id)}).sort("data", -1))
         if not historico:
             console.print("[yellow]Nenhum histórico encontrado para este livro.[/yellow]")
-            input("Pressione Enter...")
-            return
+        else:
+            tabela = Table(title="Histórico", box=box.MINIMAL_DOUBLE_HEAD)
+            tabela.add_column("ID", style="dim", width=12)
+            tabela.add_column("Ação", style="cyan")
+            tabela.add_column("Detalhes", style="magenta")
+            tabela.add_column("Data", style="green")
 
-        tabela = Table(title="Histórico", box=box.MINIMAL_DOUBLE_HEAD)
-        tabela.add_column("ID", style="dim", width=12)
-        tabela.add_column("Ação", style="cyan")
-        tabela.add_column("Detalhes", style="magenta")
-        tabela.add_column("Data", style="green")
+            for h in historico:
+                tabela.add_row(str(h["_id"]), h["acao"], h["detalhes"], h["data"].strftime("%d/%m/%Y %H:%M:%S"))
 
-        for h in historico:
-            tabela.add_row(str(h["_id"]), h["acao"], h["detalhes"], h["data"].strftime("%d/%m/%Y %H:%M:%S"))
-
-        console.print(tabela)
+            console.print(tabela)
     except Exception as e:
         console.print(f"[red]Erro: {e}[/red]")
     input("Pressione Enter para continuar...")
@@ -230,7 +219,6 @@ def atualizar_livro(is_admin=False):
 
         colecao_livros.update_one({"_id": ObjectId(livro_id)}, {"$set": updates})
         registrar_historico(livro_id, "Atualização", f"Campos atualizados: {list(updates.keys())}")
-
         console.print("[green]Livro atualizado com sucesso![/green]")
     except Exception as e:
         console.print(f"[red]Erro: {e}[/red]")
@@ -241,7 +229,6 @@ def apagar_livro():
     console.print(Panel.fit("[bold red]APAGAR LIVRO[/]"))
     listar_livros()
     livro_id = Prompt.ask("Digite o ID do livro para apagar").strip()
-
     try:
         livro = colecao_livros.find_one({"_id": ObjectId(livro_id)})
         if not livro:
@@ -249,7 +236,7 @@ def apagar_livro():
             input("Pressione Enter...")
             return
 
-        confirm = Prompt.ask(f"Confirma apagar o livro '{livro['titulo']}'? (s/n)", choices=["s","n"])
+        confirm = Prompt.ask(f"Confirma apagar o livro '{livro['titulo']}'? (s/n)", choices=["s", "n"])
         if confirm == "s":
             colecao_livros.delete_one({"_id": ObjectId(livro_id)})
             colecao_historico.delete_many({"livro_id": ObjectId(livro_id)})
@@ -292,3 +279,38 @@ def gerenciar_historico():
         except Exception as e:
             console.print(f"[red]Erro: {e}[/red]")
     input("Pressione Enter para continuar...")
+
+def menu_biblioteca(is_admin=False):
+    while True:
+        console.clear()
+        console.print(Panel.fit("[bold cyan]MENU BIBLIOTECA[/]", subtitle="Administração" if is_admin else "Usuário"))
+        console.print("[bold white]1.[/] Adicionar livro")
+        console.print("[bold white]2.[/] Listar livros")
+        console.print("[bold white]3.[/] Buscar livros por filtros")
+        console.print("[bold white]4.[/] Emprestar livro")
+        console.print("[bold white]5.[/] Devolver livro")
+        console.print("[bold white]6.[/] Visualizar histórico de um livro")
+        console.print("[bold white]7.[/] Atualizar informações de um livro")
+
+        if is_admin:
+            console.print("[bold red]8.[/] Apagar livro")
+            console.print("[bold red]9.[/] Gerenciar histórico (apagar registros)")
+
+        console.print("[bold red]0.[/] Voltar")
+
+        opcao = Prompt.ask("\nEscolha uma opção")
+
+        match opcao:
+            case "1": adicionar_livro()
+            case "2": listar_livros_menu()
+            case "3": buscar_livros()
+            case "4": emprestar_livro()
+            case "5": devolver_livro()
+            case "6": visualizar_historico()
+            case "7": atualizar_livro(is_admin)
+            case "8" if is_admin: apagar_livro()
+            case "9" if is_admin: gerenciar_historico()
+            case "0": return
+            case _:
+                console.print("[red]Opção inválida![/red]")
+                input("Pressione Enter para continuar...")
