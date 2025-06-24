@@ -1,3 +1,4 @@
+# Feito por Kay
 from auth import login
 from ui import menu_principal, menu_biblioteca, menu_administracao
 from biblioteca import menu_biblioteca as menu_biblioteca_func
