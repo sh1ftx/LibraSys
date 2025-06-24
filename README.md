@@ -1,7 +1,7 @@
 
-===============================================================================
+
   #  LibraSys - Gerenciador de Biblioteca com MongoDB
-===============================================================================
+
     Projeto desenvolvido para a disciplina de Banco de Dados II
     Curso: Análise e Desenvolvimento de Sistemas (ADS)
 
@@ -39,5 +39,5 @@
     ------------
     Este projeto foi desenvolvido com foco em boas práticas de programação,
     uso de padrões visuais no terminal e estrutura modular.
-===============================================================================
+
 
